@@ -114,7 +114,6 @@ namespace Libplanet.Net
                 iceServers ?? new List<IceServer>(),
                 differentAppProtocolVersionEncountered,
                 Options.MessageTimestampBuffer).ConfigureAwait(false).GetAwaiter().GetResult();
-            Transport.ProcessMessageHandler.Register(ProcessMessageHandlerAsync);
             PeerDiscovery = new KademliaProtocol(RoutingTable, Transport, Address);
         }
 
@@ -151,7 +150,6 @@ namespace Libplanet.Net
             TxCompletion = new TxCompletion<BoundPeer, T>(BlockChain, GetTxsAsync, BroadcastTxs);
             RoutingTable = routingTable;
             Transport = transport;
-            Transport.ProcessMessageHandler.Register(ProcessMessageHandlerAsync);
             PeerDiscovery = new KademliaProtocol(RoutingTable, Transport, Address);
         }
 
@@ -269,6 +267,7 @@ namespace Libplanet.Net
 
             BlockDemandTable = new BlockDemandTable<T>(Options.BlockDemandLifespan);
             BlockCandidateTable = new BlockCandidateTable<T>();
+            Transport.ProcessMessageHandler.Unregister(ProcessMessageHandlerAsync);
             _logger.Debug($"{nameof(Swarm<T>)} stopped.");
         }
 
@@ -332,6 +331,7 @@ namespace Libplanet.Net
             TimeSpan broadcastTxInterval,
             CancellationToken cancellationToken = default)
         {
+            Transport.ProcessMessageHandler.Register(ProcessMessageHandlerAsync);
             var tasks = new List<Task>();
             _workerCancellationTokenSource = new CancellationTokenSource();
             _cancellationToken = CancellationTokenSource.CreateLinkedTokenSource(
