@@ -326,10 +326,7 @@ namespace Libplanet.Net
                 Block<T> initialTip = BlockChain.Tip;
                 long totalBlocksToDownload = 0L;
                 long receivedBlockCount = 0L;
-                Block<T> tipCandidate = initialTip;
-
-                Block<T> tempTip = tipCandidate;
-                Block<T> branchpoint = null;
+                Block<T> tempTip = initialTip;
 
                 var demandBlockHashes = GetDemandBlockHashes(
                     workspace,
@@ -437,8 +434,7 @@ namespace Libplanet.Net
                     );
                     block.ValidateTimestamp();
                     workspace.Store.PutBlock(block);
-                    if (tempTip is null ||
-                        BlockChain.Policy.CanonicalChainComparer.Compare(block, tempTip) > 0)
+                    if (BlockChain.Policy.CanonicalChainComparer.Compare(block, tempTip) > 0)
                     {
                         tempTip = block;
                     }
@@ -461,19 +457,14 @@ namespace Libplanet.Net
                     );
                 }
 
-                tipCandidate = tempTip;
+                Block<T> tipCandidate = tempTip;
+                Block<T> branchpoint;
                 _logger.Debug(
                     "TipCandidate: #{Index} {Hash}",
                     tipCandidate?.Index,
                     tipCandidate?.Hash);
 
-                if (tipCandidate is null)
-                {
-                    // If there is no blocks in the network (or no consensus at least)
-                    // it doesn't need to receive states from other peers at all.
-                    return renderSwap;
-                }
-                else if (tipCandidate is { } tc && tc.Index == 0)
+                if (tipCandidate is { } tc && tc.Index == 0)
                 {
                     // FIXME: This is here to keep logical equivalence through refactoring.
                     // This part of the code is likely unreachable and the exception message
