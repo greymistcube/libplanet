@@ -457,7 +457,8 @@ namespace Libplanet.Tests.Blockchain
             long? offsetIndex;
             IReadOnlyList<BlockHash> hashes;
 
-            _blockChain.FindNextHashes(new BlockLocator(new BlockHash[] { }))
+            _blockChain.FindNextHashes(
+                new BlockLocator(new BlockHash[] { _blockChain.Genesis.Hash }))
                 .Deconstruct(out offsetIndex, out hashes);
             Assert.Single(hashes);
             var block0 = _blockChain.Genesis;
@@ -1432,8 +1433,9 @@ namespace Libplanet.Tests.Blockchain
 
             Assert.Equal(b1.PreviousHash, _blockChain.Genesis.Hash);
 
-            var emptyLocator = new BlockLocator(new BlockHash[0]);
-            var locator = new BlockLocator(new[] { b4.Hash, b3.Hash, b1.Hash });
+            var emptyLocator = new BlockLocator(new[] { _blockChain.Genesis.Hash });
+            var locator = new BlockLocator(
+                new[] { b4.Hash, b3.Hash, b1.Hash, _blockChain.Genesis.Hash });
 
             using (var emptyFx = new MemoryStoreFixture(_policy.BlockAction))
             using (var forkFx = new MemoryStoreFixture(_policy.BlockAction))
@@ -1455,13 +1457,13 @@ namespace Libplanet.Tests.Blockchain
                 fork.Append(b2);
                 await fork.MineBlock(key);
 
-                Assert.Null(emptyChain.FindBranchpoint(emptyLocator));
-                Assert.Null(emptyChain.FindBranchpoint(locator));
+                Assert.Equal(_blockChain.Genesis.Hash, emptyChain.FindBranchpoint(emptyLocator));
+                Assert.Equal(_blockChain.Genesis.Hash, emptyChain.FindBranchpoint(locator));
 
-                Assert.Null(_blockChain.FindBranchpoint(emptyLocator));
+                Assert.Equal(_blockChain.Genesis.Hash, _blockChain.FindBranchpoint(emptyLocator));
                 Assert.Equal(b4.Hash, _blockChain.FindBranchpoint(locator));
 
-                Assert.Null(fork.FindBranchpoint(emptyLocator));
+                Assert.Equal(_blockChain.Genesis.Hash, fork.FindBranchpoint(emptyLocator));
                 Assert.Equal(b1.Hash, fork.FindBranchpoint(locator));
             }
         }

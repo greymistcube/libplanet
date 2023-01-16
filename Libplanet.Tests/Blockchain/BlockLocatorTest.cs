@@ -30,11 +30,10 @@ namespace Libplanet.Tests.Blockchain
                 return new BlockHash(buffer);
             }).ToImmutableArray();
 
-            var locator = new BlockLocator(
-                indexBlockHash: idx => blocks[(int)(idx < 0 ? blocks.Length + idx : idx)],
-                indexByBlockHash: hash => blocks.IndexOf(hash),
-                sampleAfter: 5
-            );
+            var locator = BlockLocator.Create(
+                startIndex: blocks.Length - 1,
+                indexToBlockHash: idx => blocks[(int)(idx < 0 ? blocks.Length + idx : idx)],
+                sampleAfter: 5);
 
             foreach (BlockHash hash in locator)
             {

@@ -1,65 +1,64 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using Libplanet.Blocks;
 
 namespace Libplanet.Blockchain
 {
     /// <summary>
-    /// A class that contains the hashes for a series of blocks.
+    /// A class that contains <see cref="BlockHash"/>es for a series of blocks.
     /// </summary>
     public class BlockLocator : IEnumerable<BlockHash>
     {
-        private readonly IEnumerable<BlockHash> _impl;
-
-        /// <summary>
-        /// Initializes a new instance of <see cref="BlockLocator"/> with a set of indexer
-        /// functions, sampling after <paramref name="sampleAfter"/> number of blocks.
-        /// </summary>
-        /// <param name="indexBlockHash">A function that converts an index to a
-        /// <see cref="BlockHash"/>.</param>
-        /// <param name="indexByBlockHash">A function that converts a <see cref="BlockHash"/> to its
-        /// index.</param>
-        /// <param name="sampleAfter">The number of consequent blocks to include before sampling.
-        /// </param>
-        public BlockLocator(
-            Func<long, BlockHash?> indexBlockHash,
-            Func<BlockHash, long> indexByBlockHash,
-            int sampleAfter = 10
-        )
-        {
-            BlockHash? current = indexBlockHash(-1);
-            long step = 1;
-            var hashes = new List<BlockHash>();
-            while (current is { } hash)
-            {
-                hashes.Add(hash);
-                long currentBlockIndex = indexByBlockHash(hash);
-
-                if (currentBlockIndex == 0)
-                {
-                    break;
-                }
-
-                long nextIndex = Math.Max(currentBlockIndex - step, 0);
-                current = indexBlockHash(nextIndex);
-
-                if (hashes.Count >= sampleAfter)
-                {
-                    step *= 2;
-                }
-            }
-
-            _impl = hashes;
-        }
+        private readonly List<BlockHash> _impl;
 
         /// <summary>
         /// Initializes a new instance of <see cref="BlockLocator"/> from <paramref name="hashes"/>.
         /// </summary>
         /// <param name="hashes">Enumerable of <see cref="BlockHash"/>es to convert from.</param>
+        /// <exception cref="ArgumentException">Thrown when <paramref name="hashes"/> is empty.
+        /// </exception>
         public BlockLocator(IEnumerable<BlockHash> hashes)
         {
-            _impl = hashes;
+            _impl = hashes.Any()
+                ? hashes.ToList()
+                : throw new ArgumentException(
+                    $"Given {nameof(hashes)} cannot be empty.", nameof(hashes));
+        }
+
+        public static BlockLocator Create(
+            long startIndex,
+            Func<long, BlockHash?> indexToBlockHash,
+            long sampleAfter = 10)
+        {
+            if (startIndex < 0)
+            {
+                throw new ArgumentOutOfRangeException(
+                    $"Given {nameof(startIndex)} cannot be negative: {startIndex}",
+                    nameof(startIndex));
+            }
+
+            BlockHash genesisHash = indexToBlockHash(0) ??
+                throw new ArgumentException(
+                    $"Given {nameof(indexToBlockHash)} should not be null at zero index.",
+                    nameof(indexToBlockHash));
+            var hashes = new List<BlockHash>();
+
+            foreach (long index in GetEnumeratedIndices(startIndex, sampleAfter))
+            {
+                if (indexToBlockHash(index) is { } hash)
+                {
+                    hashes.Add(hash);
+                }
+                else
+                {
+                    hashes.Add(genesisHash);
+                    break;
+                }
+            }
+
+            return new BlockLocator(hashes);
         }
 
         /// <summary>
@@ -74,6 +73,20 @@ namespace Libplanet.Blockchain
         IEnumerator IEnumerable.GetEnumerator()
         {
             return _impl.GetEnumerator();
+        }
+
+        private static IEnumerable<long> GetEnumeratedIndices(long startIndex, long sampleAfter)
+        {
+            long currentIndex = startIndex;
+            long step = 1;
+            while (currentIndex > 0)
+            {
+                yield return currentIndex;
+                currentIndex = Math.Max(currentIndex - step, 0);
+                step = startIndex - currentIndex <= sampleAfter - 1 ? step : step * 2;
+            }
+
+            yield return currentIndex;
         }
     }
 }

@@ -1097,14 +1097,14 @@ namespace Libplanet.Blockchain
 
                 Stopwatch stopwatch = new Stopwatch();
                 stopwatch.Start();
-                var locator = new BlockLocator(
-                    indexBlockHash: idx => Store.IndexBlockHash(Id, idx),
-                    indexByBlockHash: hash => _blocks[hash].Index,
+                var locator = BlockLocator.Create(
+                    startIndex: Tip.Index,
+                    indexToBlockHash: idx => Store.IndexBlockHash(Id, idx),
                     sampleAfter: threshold
                 );
                 stopwatch.Stop();
                 _logger.Debug(
-                    "[Diagnostic] Took {ElapsedMilliseconds} ms to create a block locator with" +
+                    "[Diagnostic] Took {ElapsedMilliseconds} ms to create a block locator with " +
                     "tip #{Index} {Hash}",
                     stopwatch.ElapsedMilliseconds,
                     Tip.Index,
