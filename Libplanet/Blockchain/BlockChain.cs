@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Linq;
@@ -1094,11 +1095,22 @@ namespace Libplanet.Blockchain
             {
                 _rwlock.EnterReadLock();
 
-                return new BlockLocator(
+                Stopwatch stopwatch = new Stopwatch();
+                stopwatch.Start();
+                var locator = new BlockLocator(
                     indexBlockHash: idx => Store.IndexBlockHash(Id, idx),
                     indexByBlockHash: hash => _blocks[hash].Index,
                     sampleAfter: threshold
                 );
+                stopwatch.Stop();
+                _logger.Debug(
+                    "[Diagnostic] Took {ElapsedMilliseconds} ms to create a block locator with" +
+                    "tip #{Index} {Hash}",
+                    stopwatch.ElapsedMilliseconds,
+                    Tip.Index,
+                    Tip.Hash);
+
+                return locator;
             }
             finally
             {
