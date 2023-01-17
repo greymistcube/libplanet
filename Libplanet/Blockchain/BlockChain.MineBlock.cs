@@ -232,7 +232,15 @@ namespace Libplanet.Blockchain
         )
         {
             long index = Count;
+            Stopwatch stopwatch = new Stopwatch();
+            stopwatch.Start();
             ImmutableList<Transaction<T>> stagedTransactions = ListStagedTransactions(txPriority);
+            stopwatch.Stop();
+            _logger.Debug(
+                "[Diagnostic] Took {ElapsedMilliseconds} ms to gather {Count} transactions " +
+                "to mine",
+                stopwatch.ElapsedMilliseconds,
+                stagedTransactions.Count);
             _logger.Information(
                 "Gathering transactions to mine for block #{Index} from {TxCount} " +
                 "staged transactions...",

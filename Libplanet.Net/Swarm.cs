@@ -3,6 +3,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Runtime.CompilerServices;
@@ -1319,9 +1320,17 @@ namespace Libplanet.Net
                     await Task.Run(
                         () =>
                         {
+                            Stopwatch stopwatch = new Stopwatch();
+                            stopwatch.Start();
                             List<TxId> txIds = BlockChain
                                 .GetStagedTransactionIds()
                                 .ToList();
+                            stopwatch.Stop();
+                            _logger.Debug(
+                                "[Diagnostic] Took {ElapsedMilliseconds} to gather {Count} " +
+                                "transaction ids to broadcast",
+                                stopwatch.ElapsedMilliseconds,
+                                txIds.Count);
 
                             if (txIds.Any())
                             {
