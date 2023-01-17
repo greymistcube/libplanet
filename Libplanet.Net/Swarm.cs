@@ -1327,7 +1327,7 @@ namespace Libplanet.Net
                                 .ToList();
                             stopwatch.Stop();
                             _logger.Debug(
-                                "[Diagnostic] Took {ElapsedMilliseconds} to gather {Count} " +
+                                "[Diagnostic] Took {ElapsedMilliseconds} ms to gather {Count} " +
                                 "transaction ids to broadcast",
                                 stopwatch.ElapsedMilliseconds,
                                 txIds.Count);

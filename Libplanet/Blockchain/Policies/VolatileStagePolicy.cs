@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Libplanet.Action;
 using Libplanet.Tx;
 using Serilog;
@@ -160,6 +161,7 @@ namespace Libplanet.Blockchain.Policies
                 try
                 {
                     _ignored.Add(id);
+                    _staged.TryRemove(id, out _);
                 }
                 finally
                 {
@@ -204,14 +206,13 @@ namespace Libplanet.Blockchain.Policies
         public IEnumerable<Transaction<T>> Iterate(BlockChain<T> blockChain, bool filtered = true)
         {
             List<Transaction<T>> transactions = new List<Transaction<T>>();
-
             _lock.EnterReadLock();
             try
             {
                 List<TxId> txIds = _staged.Keys.ToList();
                 foreach (TxId txId in txIds)
                 {
-                    if (GetInner(blockChain, txId, filtered) is Transaction<T> tx)
+                    if (GetInner(blockChain, txId, filtered) is { } tx)
                     {
                         transactions.Add(tx);
                     }
@@ -248,27 +249,52 @@ namespace Libplanet.Blockchain.Policies
             return nonce;
         }
 
-        private bool Expired(Transaction<T> transaction) =>
-            transaction.Timestamp + Lifetime < DateTimeOffset.UtcNow;
-
+        /// <summary>
+        /// Retrieves a staged <see cref="Transaction{T}"/> matching given <paramref name="id"/>.
+        /// </summary>
+        /// <param name="blockChain">The <see cref="BlockChain{T}"/> to use
+        /// as a reference when filtering.</param>
+        /// <param name="id">The <see cref="TxId"/> to look up.</param>
+        /// <param name="filtered">Whether to return filtered result or not.</param>
+        /// <returns>
+        /// Returned value is decided according to the following rule:
+        /// <list type="bullet">
+        ///   <item><description>
+        ///     If <paramref name="id"/> is not staged, returns <see langword="null"/>.
+        ///   </description></item>
+        ///   <item><description>
+        ///     If <paramref name="id"/> is staged and expired, returns <see langword="null"/>.
+        ///   </description></item>
+        ///   <item><description>
+        ///     If <paramref name="id"/> is staged, not expired, but filtered,
+        ///     returns <see langword="null"/>.  This is treating the same as if
+        ///     the <see cref="Transaction{T}"/> was not staged in the first place.
+        ///   </description></item>
+        ///   <item><description>
+        ///     If <paramref name="id"/> is staged, not expired, and not filtered,
+        ///     returns the found <see cref="Transaction{T}"/>.
+        ///   </description></item>
+        /// </list>
+        /// </returns>
         /// <remarks>
-        /// It has been intended to avoid recursive lock, hence doesn't hold any synchronous scope.
-        /// Therefore, we should manage the lock from its caller side.
+        /// <para>
+        /// This has been intended to avoid recursive lock, hence doesn't hold any synchronous
+        /// scope.  Therefore, we should manage the lock from its caller side.
+        /// </para>
         /// </remarks>
         private Transaction<T>? GetInner(BlockChain<T> blockChain, TxId id, bool filtered)
         {
             if (_staged.TryGetValue(id, out Transaction<T>? tx) && tx is { })
             {
-                if (Expired(tx) || _ignored.Contains(tx.Id))
+                if (Expired(tx))
                 {
-                    _staged.TryRemove(id, out _);
+                    _ = Task.Run(() => CleanupExpired(tx.Id));
                     return null;
                 }
-                else if (filtered)
+                else if (filtered &&
+                    tx.Nonce < blockChain.Store.GetTxNonce(blockChain.Id, tx.Signer))
                 {
-                    return blockChain.Store.GetTxNonce(blockChain.Id, tx.Signer) <= tx.Nonce
-                        ? tx
-                        : null;
+                    return null;
                 }
                 else
                 {
@@ -280,5 +306,21 @@ namespace Libplanet.Blockchain.Policies
                 return null;
             }
         }
+
+        private void CleanupExpired(TxId txid)
+        {
+            _lock.EnterWriteLock();
+            try
+            {
+                _staged.TryRemove(txid, out _);
+            }
+            finally
+            {
+                _lock.ExitWriteLock();
+            }
+        }
+
+        private bool Expired(Transaction<T> transaction) =>
+            transaction.Timestamp + Lifetime < DateTimeOffset.UtcNow;
     }
 }
