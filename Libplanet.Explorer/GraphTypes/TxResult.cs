@@ -26,9 +26,10 @@ namespace Libplanet.Explorer.GraphTypes
             BlockIndex = blockIndex;
             BlockHash = blockHash;
             ExceptionName = exceptionName;
-            ExceptionMetadata = exceptionMetadata;
+            ExceptionMetadata = null;
             UpdatedStates = updatedStates;
-            FungibleAssetsDelta = fungibleAssetsDelta;
+            FungibleAssetsDelta =
+                ImmutableDictionary<Address, IImmutableDictionary<Currency, FAV>>.Empty;
             UpdatedFungibleAssets = updatedFungibleAssets;
             ActionsLogsList = actionsLogsList;
         }

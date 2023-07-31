@@ -22,22 +22,11 @@ namespace Libplanet.Explorer.Tests.GraphTypes
                     blockIndex
                     blockHash
                     exceptionName
-                    exceptionMetadata
                     updatedStates {
                         address
                         state
                     }
                     updatedFungibleAssets {
-                        address
-                        fungibleAssetValues {
-                            currency {
-                                ticker
-                                decimalPlaces
-                            }
-                            quantity
-                        }
-                    }
-                    fungibleAssetsDelta {
                         address
                         fungibleAssetValues {
                             currency {
@@ -83,10 +72,8 @@ namespace Libplanet.Explorer.Tests.GraphTypes
                         ["blockIndex"] = 0L,
                         ["blockHash"] = "45bcaa4c0b00f4f31eb61577e595ea58fb69c7df3ee612aa6eea945bbb0ce39d",
                         ["exceptionName"] = null,
-                        ["exceptionMetadata"] = null,
                         ["updatedStates"] = new object[0],
                         ["updatedFungibleAssets"] = new object[0],
-                        ["fungibleAssetsDelta"] = new object[0],
                     }
                 },
                 new object[] {
@@ -117,7 +104,6 @@ namespace Libplanet.Explorer.Tests.GraphTypes
                         ["blockIndex"] = 0L,
                         ["blockHash"] = "45bcaa4c0b00f4f31eb61577e595ea58fb69c7df3ee612aa6eea945bbb0ce39d",
                         ["exceptionName"] = null,
-                        ["exceptionMetadata"] = null,
                         ["updatedStates"] = new object[] {
                             new Dictionary<string, object> {
                                 ["address"] = address.ToString(),
@@ -134,20 +120,6 @@ namespace Libplanet.Explorer.Tests.GraphTypes
                                             ["decimalPlaces"] = KRW.DecimalPlaces,
                                         },
                                         ["quantity"] = "20000",
-                                    },
-                                },
-                            },
-                        },
-                        ["fungibleAssetsDelta"] = new object[] {
-                            new Dictionary<string, object> {
-                                ["address"] = address.ToString(),
-                                ["fungibleAssetValues"] = new object[] {
-                                    new Dictionary<string, object> {
-                                        ["currency"] = new Dictionary<string, object> {
-                                            ["ticker"] = KRW.Ticker,
-                                            ["decimalPlaces"] = KRW.DecimalPlaces,
-                                        },
-                                        ["quantity"] = "10000",
                                     },
                                 },
                             },
