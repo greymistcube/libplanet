@@ -19,6 +19,9 @@ To be released.
  -  (Libplanet.Store) Added `ITrie.Get(KeyBytes)` interface method.  [[#3359]]
  -  (Libplanet.Store) Optimized `MerkleTrie.Get()` by allowing parallel
     processing when more than 4 `KeyBytes` keys are given.  [[#3359]]
+ -  (Libplanet.Store) Added `VolatileKeyValueStore` class.  [[#3361]]
+ -  (Libplanet.Store) Changed `IStateStore.GetStateRoot(HashDigest<SHA256>?)`
+    to `IStateStore.GetStateRoot(HashDigest<SHA256>?, bool)`.  [[#3361]]
 
 ### Backward-incompatible network protocol changes
 
@@ -41,6 +44,7 @@ To be released.
 [#3347]: https://github.com/planetarium/libplanet/pull/3347
 [#3357]: https://github.com/planetarium/libplanet/pull/3357
 [#3359]: https://github.com/planetarium/libplanet/pull/3359
+[#3361]: https://github.com/planetarium/libplanet/pull/3361
 [#3365]: https://github.com/planetarium/libplanet/pull/3365
 [Bencodex 0.14.0]: https://www.nuget.org/packages/Bencodex/0.14.0
 
