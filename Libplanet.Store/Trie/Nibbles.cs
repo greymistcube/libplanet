@@ -54,6 +54,28 @@ namespace Libplanet.Store.Trie
 
         public byte this[int index] => ByteArray[index];
 
+        public static Nibbles FromHex(string hex)
+        {
+            byte[] bytes = new byte[hex.Length];
+            for (var i = 0; i < hex.Length; i++)
+            {
+                bytes[i] = (byte)System.Uri.FromHex(hex[i]);
+            }
+
+            return new Nibbles(bytes.ToImmutableArray());
+        }
+
+        public static Nibbles FromBytes(in ImmutableArray<byte> bytes)
+        {
+            byte[] result = new byte[bytes.Length * 2];
+            for (int i = 0; i < result.Length; i++)
+            {
+                result[i] = GetNibble(bytes[i / 2], i % 2 == 0);
+            }
+
+            return new Nibbles(result.ToImmutableArray());
+        }
+
         public Nibbles Add(byte b)
         {
             return new Nibbles(ByteArray.Add(b));
@@ -130,15 +152,7 @@ namespace Libplanet.Store.Trie
             return Hex;
         }
 
-        public static Nibbles FromHex(string hex)
-        {
-            byte[] bytes = new byte[hex.Length];
-            for (var i = 0; i < hex.Length; i++)
-            {
-                bytes[i] = (byte)System.Uri.FromHex(hex[i]);
-            }
-
-            return new Nibbles(bytes.ToImmutableArray());
-        }
+        private static byte GetNibble(byte octet, bool high) =>
+            high ? (byte)(octet >> 4) : (byte)(octet & 0b00001111);
     }
 }
