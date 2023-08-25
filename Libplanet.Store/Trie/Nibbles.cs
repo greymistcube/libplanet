@@ -67,13 +67,14 @@ namespace Libplanet.Store.Trie
 
         public static Nibbles FromBytes(in ImmutableArray<byte> bytes)
         {
-            byte[] result = new byte[bytes.Length * 2];
-            for (int i = 0; i < result.Length; i++)
+            var builder = ImmutableArray.CreateBuilder<byte>(bytes.Length * 2);
+            for (int i = 0; i < bytes.Length; i++)
             {
-                result[i] = GetNibble(bytes[i / 2], i % 2 == 0);
+                builder.Add((byte)(bytes[i] >> 4));
+                builder.Add((byte)(bytes[i] & 0x0f));
             }
 
-            return new Nibbles(result.ToImmutableArray());
+            return new Nibbles(builder.ToImmutable());
         }
 
         public Nibbles Add(byte b)
@@ -95,6 +96,9 @@ namespace Libplanet.Store.Trie
         /// A list of <see langword="byte"/>s representing compressed nibbles where each
         /// pair of nibbles is compacted into a <see langword="byte"/>.
         /// </summary>
+        /// <returns>
+        /// A compacted nibbles in <see langword="byte"/>s.
+        /// </returns>
         /// <remarks>
         /// As nibbles with odd length and nibbles with even length ending in 0 may have
         /// the same compressed representation, this should be used with <see cref="Length"/>
@@ -151,8 +155,5 @@ namespace Libplanet.Store.Trie
         {
             return Hex;
         }
-
-        private static byte GetNibble(byte octet, bool high) =>
-            high ? (byte)(octet >> 4) : (byte)(octet & 0b00001111);
     }
 }

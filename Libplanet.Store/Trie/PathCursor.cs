@@ -66,12 +66,22 @@ namespace Libplanet.Store.Trie
         [Pure]
         public bool RemainingNibblesStartWith(in Nibbles nibbles)
         {
-            if (NibbleLength < nibbles.Length)
+            if (RemainingNibbleLength < nibbles.Length)
             {
                 return false;
             }
 
-            return CountCommonStartingNibbles(nibbles) >= nibbles.Length;
+            int i = 0;
+            for (; i < nibbles.Length; i++)
+            {
+                int offset = NibbleOffset + i;
+                if (Nibbles[offset] != nibbles[i])
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         /// <summary>
@@ -94,6 +104,28 @@ namespace Libplanet.Store.Trie
             }
 
             return i;
+        }
+
+        [Pure]
+        public Nibbles GetCommonStartingNibbles(in Nibbles nibbles)
+        {
+            var builder = ImmutableArray.CreateBuilder<byte>();
+
+            int i = 0;
+            for (; i < Math.Min(RemainingNibbleLength, nibbles.Length); i++)
+            {
+                int offset = NibbleOffset + i;
+                if (Nibbles[offset] != nibbles[i])
+                {
+                    return new Nibbles(builder.ToImmutable());
+                }
+                else
+                {
+                    builder.Add(Nibbles[offset]);
+                }
+            }
+
+            return new Nibbles(builder.ToImmutable());
         }
     }
 }
