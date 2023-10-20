@@ -98,7 +98,7 @@ namespace Libplanet.Consensus
                     CultureInfo.InvariantCulture),
                 validatorPublicKey: new PublicKey(
                     encoded.GetValue<Binary>(ValidatorPublicKeyKey).ByteArray),
-                marshaledBlock: encoded.GetValue<Binary>(BlockKey),
+                marshaledBlock: encoded.GetValue<Binary>(BlockKey).ToByteArray(),
                 validRound: encoded.GetValue<Integer>(ValidRoundKey))
         {
         }

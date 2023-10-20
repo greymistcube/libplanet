@@ -114,7 +114,7 @@ namespace Libplanet.Types.Tx
                 new Dictionary(
                     g.Select(kv =>
                         new KeyValuePair<Binary, List>(
-                            kv.Key.ByteArray,
+                            new Binary(kv.Key.ByteArray),
                             new List(
                                 kv.Value.Select(fav =>
                                     List.Empty
