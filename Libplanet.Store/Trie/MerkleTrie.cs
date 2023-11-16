@@ -43,7 +43,7 @@ namespace Libplanet.Store.Trie
             IKeyValueStore keyValueStore,
             HashDigest<SHA256> rootHash,
             HashNodeCache? cache = null)
-            : this(keyValueStore, new HashNode(rootHash))
+            : this(keyValueStore, new HashNode(rootHash), cache)
         {
         }
 
