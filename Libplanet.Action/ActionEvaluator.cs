@@ -135,6 +135,7 @@ namespace Libplanet.Action
         /// being executed.</param>
         /// <param name="actions">Actions to evaluate.</param>
         /// <param name="logger">An optional logger.</param>
+        /// <param name="stateStore">An <see cref="IStateStore"/> to use.</param>
         /// <returns>An enumeration of <see cref="ActionEvaluation"/>s for each
         /// <see cref="IAction"/> in <paramref name="actions"/>.
         /// </returns>
@@ -167,7 +168,8 @@ namespace Libplanet.Action
             ITransaction? tx,
             IAccount previousState,
             IImmutableList<IAction> actions,
-            ILogger? logger = null)
+            ILogger? logger = null,
+            IStateStore? stateStore = null)
         {
             IActionContext CreateActionContext(
                 IAccount prevState,
@@ -206,7 +208,8 @@ namespace Libplanet.Action
                     tx,
                     context,
                     action,
-                    logger);
+                    logger,
+                    stateStore);
 
                 yield return result.Evaluation;
 
@@ -225,7 +228,8 @@ namespace Libplanet.Action
             ITransaction? tx,
             IActionContext context,
             IAction action,
-            ILogger? logger = null)
+            ILogger? logger = null,
+            IStateStore? stateStore = null)
         {
             IActionContext inputContext = context;
             IAccount state = inputContext.PreviousState;
@@ -315,6 +319,12 @@ namespace Libplanet.Action
 
             state = feeCollector.Refund(state);
             state = feeCollector.Reward(state);
+            state = stateStore is { } s && state is Account a
+                ? new Account(
+                    new AccountState(s.Commit(a.Trie)),
+                    new AccountDelta(),
+                    a.TotalUpdatedFungibles)
+                : state;
 
             return (
                 new ActionEvaluation(
@@ -432,7 +442,8 @@ namespace Libplanet.Action
                 tx: tx,
                 previousState: previousState,
                 actions: actions,
-                logger: _logger);
+                logger: _logger,
+                stateStore: _stateStore);
         }
 
         /// <summary>
@@ -468,7 +479,9 @@ namespace Libplanet.Action
                 blockHeader: blockHeader,
                 tx: null,
                 previousState: previousState,
-                actions: new[] { policyBlockAction }.ToImmutableList()).Single();
+                actions: new[] { policyBlockAction }.ToImmutableList(),
+                logger: _logger,
+                stateStore: _stateStore).Single();
         }
 
         internal IAccount PrepareInitialDelta(HashDigest<SHA256>? stateRootHash)
@@ -491,7 +504,7 @@ namespace Libplanet.Action
             int setCount = 0;
             foreach (var evaluation in evaluations)
             {
-                ITrie nextTrie = _stateStore.Commit(evaluation.OutputState.Trie);
+#pragma warning disable SA1118
                 var committedEvaluation = new CommittedActionEvaluation(
                     action: evaluation.Action,
                     inputContext: new CommittedActionContext(
@@ -501,14 +514,19 @@ namespace Libplanet.Action
                         blockIndex: evaluation.InputContext.BlockIndex,
                         blockProtocolVersion: evaluation.InputContext.BlockProtocolVersion,
                         rehearsal: evaluation.InputContext.Rehearsal,
-                        previousState: trie.Hash,
+                        previousState: evaluation.InputContext.PreviousState.Trie.Recorded
+                            ? evaluation.InputContext.PreviousState.Trie.Hash
+                            : throw new ArgumentException("Trie is not recorded"),
                         randomSeed: evaluation.InputContext.RandomSeed,
                         blockAction: evaluation.InputContext.BlockAction),
-                    outputState: nextTrie.Hash,
+                    outputState: evaluation.OutputState.Trie.Recorded
+                        ? evaluation.OutputState.Trie.Hash
+                        : throw new ArgumentException("Trie is not recorded"),
                     exception: evaluation.Exception);
                 committedEvaluations.Add(committedEvaluation);
+#pragma warning restore SA1118
 
-                trie = nextTrie;
+                trie = evaluation.OutputState.Trie;
             }
 
             _logger
