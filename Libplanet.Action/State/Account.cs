@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.Contracts;
+using System.Linq;
 using System.Numerics;
 using Bencodex.Types;
 using Libplanet.Crypto;
@@ -55,12 +56,26 @@ namespace Libplanet.Action.State
 
         /// <inheritdoc/>
         [Pure]
-        public IValue? GetState(Address address) => _baseState.GetState(address);
+        public IValue? GetState(Address address)
+        {
+            AccountMetrics.GetStateTimer.Value?.Start();
+            AccountMetrics.GetStateCount.Value += 1;
+            IValue? value = _baseState.GetState(address);
+            AccountMetrics.GetStateTimer.Value?.Stop();
+            return value;
+        }
 
         /// <inheritdoc cref="IAccountState.GetStates(IReadOnlyList{Address})"/>
         [Pure]
-        public IReadOnlyList<IValue?> GetStates(IReadOnlyList<Address> addresses) =>
-            _baseState.GetStates(addresses);
+        public IReadOnlyList<IValue?> GetStates(IReadOnlyList<Address> addresses)
+        {
+            AccountMetrics.GetStateTimer.Value?.Start();
+            int length = addresses.Count;
+            AccountMetrics.GetStateCount.Value += length;
+            List<IValue?> values = addresses.Select(address => GetState(address)).ToList();
+            AccountMetrics.GetStateTimer.Value?.Stop();
+            return values;
+        }
 
         /// <inheritdoc/>
         [Pure]
