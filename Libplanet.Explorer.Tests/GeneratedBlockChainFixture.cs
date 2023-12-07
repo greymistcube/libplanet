@@ -43,23 +43,19 @@ public class GeneratedBlockChainFixture
     {
         var random = new System.Random(seed);
         var stateStore = new TrieStateStore(new MemoryKeyValueStore());
-        PrivateKeys = Enumerable.Range(0, privateKeyCount)
-            .Aggregate(ImmutableArray<PrivateKey>.Empty, (arr, _) => arr.Add(new PrivateKey()));
-        MinedBlocks = PrivateKeys.Aggregate(
-            ImmutableDictionary<Address, ImmutableArray<Block>>
-                .Empty,
-            (dict, pk) =>
-                dict.SetItem(
-                    pk.ToAddress(),
-                    ImmutableArray<Block>.Empty));
-        SignedTxs = PrivateKeys.Aggregate(
-            ImmutableDictionary<
-                Address,
-                ImmutableArray<Transaction>>.Empty,
-            (dict, pk) =>
-                dict.SetItem(
-                    pk.ToAddress(),
-                    ImmutableArray<Transaction>.Empty));
+
+        PrivateKeys = Enumerable
+            .Range(0, privateKeyCount)
+            .Select(_ => new PrivateKey())
+            .ToImmutableArray();
+        MinedBlocks = PrivateKeys
+            .ToImmutableDictionary(
+                key => key.ToAddress(),
+                key => ImmutableArray<Block>.Empty);
+        SignedTxs = PrivateKeys
+            .ToImmutableDictionary(
+                key => key.ToAddress(),
+                key => ImmutableArray<Transaction>.Empty);
 
         var privateKey = new PrivateKey();
         var policy = new BlockPolicy(
@@ -150,21 +146,20 @@ public class GeneratedBlockChainFixture
     {
         var random = new System.Random(seed);
         var nonces = ImmutableDictionary<PrivateKey, long>.Empty;
-        return Enumerable.Range(0, giveMax ? maxCount : random.Next(maxCount))
-            .Aggregate(
-                ImmutableArray<Transaction>.Empty,
-                (arr, _) =>
+        return Enumerable
+            .Range(0, giveMax ? maxCount : random.Next(maxCount))
+            .Select(_ =>
+            {
+                var pk = PrivateKeys[random.Next(PrivateKeys.Length)];
+                if (!nonces.TryGetValue(pk, out var nonce))
                 {
-                    var pk = PrivateKeys[random.Next(PrivateKeys.Length)];
-                    if (!nonces.TryGetValue(pk, out var nonce))
-                    {
-                        nonce = Chain.GetNextTxNonce(pk.ToAddress());
-                    }
+                    nonce = Chain.GetNextTxNonce(pk.ToAddress());
+                }
 
-                    nonces = nonces.SetItem(pk, nonce + 1);
+                nonces = nonces.SetItem(pk, nonce + 1);
 
-                    return arr.Add(GetRandomTransaction(random.Next(), pk, nonce));
-                })
+                return GetRandomTransaction(random.Next(), pk, nonce);
+            })
             .OrderBy(tx => tx.Id)
             .ToImmutableArray();
     }
@@ -172,8 +167,6 @@ public class GeneratedBlockChainFixture
     private Transaction GetRandomTransaction(int seed, PrivateKey pk, long nonce)
     {
         var random = new System.Random(seed);
-        var addr = pk.ToAddress();
-        var bal = (int)(Chain.GetBalance(addr, TestCurrency).MajorUnit & int.MaxValue);
         return Transaction.Create(
             nonce,
             pk,
@@ -189,19 +182,19 @@ public class GeneratedBlockChainFixture
     private ImmutableArray<SimpleAction> GetRandomActions(int seed)
     {
         var random = new System.Random(seed);
-        return Enumerable.Range(0, random.Next(10))
-            .Aggregate(
-                ImmutableArray<SimpleAction>.Empty,
-                (arr, _) => arr.Add(SimpleAction.GetAction(random.Next())));
+        return Enumerable
+            .Range(0, random.Next(10))
+            .Select(_ => SimpleAction.GetAction(random.Next()))
+            .ToImmutableArray();
     }
 
     private IImmutableSet<Address> GetRandomAddresses(int seed)
     {
         var random = new System.Random(seed);
-        return Enumerable.Range(0, random.Next(PrivateKeys.Length - 1) + 1)
-            .Aggregate(
-                ImmutableHashSet<Address>.Empty,
-                (arr, _) => arr.Add(PrivateKeys[random.Next(PrivateKeys.Length)].ToAddress()));
+        return Enumerable
+            .Range(0, random.Next(PrivateKeys.Length - 1) + 1)
+            .Select(_ => PrivateKeys[random.Next(PrivateKeys.Length)].ToAddress())
+            .ToImmutableHashSet();
     }
 
     private void AddBlock(
