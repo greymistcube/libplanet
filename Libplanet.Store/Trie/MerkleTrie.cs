@@ -140,7 +140,7 @@ namespace Libplanet.Store.Trie
                 switch (node)
                 {
                     case FullNode fullNode:
-                        foreach (int index in Enumerable.Range(0, FullNode.ChildrenCount - 1))
+                        foreach (int index in Enumerable.Range(0, FullNode.ChildrenCount))
                         {
                             INode? child = fullNode.Children[index];
                             if (!(child is null))
@@ -246,7 +246,7 @@ namespace Libplanet.Store.Trie
                 switch (node)
                 {
                     case FullNode fullNode:
-                        foreach (int index in Enumerable.Range(0, FullNode.ChildrenCount - 1))
+                        foreach (int index in Enumerable.Range(0, FullNode.ChildrenCount))
                         {
                             INode? child = fullNode.Children[index];
                             if (child is HashNode hashNode)

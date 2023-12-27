@@ -57,7 +57,7 @@ namespace Libplanet.Store.Trie.Nodes
         {
             if (value is List list)
             {
-                if (list.Count == FullNode.ChildrenCount)
+                if (list.Count == FullNode.ChildrenCount + 1)
                 {
                     return (allowed & NodeType.Full) == NodeType.Full
                         ? DecodeFull(list)
@@ -133,15 +133,15 @@ namespace Libplanet.Store.Trie.Nodes
         // The length is already checked.
         private static FullNode DecodeFull(List list)
         {
-            return list.Count == FullNode.ChildrenCount
+            return list.Count == FullNode.ChildrenCount + 1
                 ? new FullNode(
                     list
-                        .Take(FullNode.ChildrenCount - 1)
+                        .Take(FullNode.ChildrenCount)
                         .Select(child => Decode(child, FullChildNodeType))
                         .ToImmutableArray(),
-                    Decode(list[FullNode.ChildrenCount - 1], FullValueNodeType))
+                    Decode(list[FullNode.ChildrenCount], FullValueNodeType))
                 : throw new ArgumentException(
-                    $"Given {nameof(list)} must be of length {FullNode.ChildrenCount}: " +
+                    $"Given {nameof(list)} must be of length {FullNode.ChildrenCount + 1}: " +
                     $"{list.Count}");
         }
 

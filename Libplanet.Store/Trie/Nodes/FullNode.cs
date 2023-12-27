@@ -7,15 +7,15 @@ namespace Libplanet.Store.Trie.Nodes
 {
     public sealed class FullNode : INode, IEquatable<FullNode>
     {
-        // Children 0x10 + Value 0x01
-        public const byte ChildrenCount = 0x11;
+        // Children 0x10
+        public const byte ChildrenCount = 0x10;
 
         public static readonly FullNode Empty =
-            new FullNode(new INode?[ChildrenCount - 1].ToImmutableArray(), null);
+            new FullNode(new INode?[ChildrenCount].ToImmutableArray(), null);
 
         public FullNode(ImmutableArray<INode?> children, INode? value)
         {
-            if (children.Length != ChildrenCount - 1)
+            if (children.Length != ChildrenCount)
             {
                 throw new InvalidTrieNodeException(
                     $"The number of {nameof(FullNode)}'s children should be {ChildrenCount}.");

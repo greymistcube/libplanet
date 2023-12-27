@@ -65,8 +65,7 @@ namespace Libplanet.Store.Trie
                                     continue;
 
                                 case FullNode fullNode:
-                                    foreach (
-                                        int i in Enumerable.Range(0, FullNode.ChildrenCount - 1))
+                                    foreach (int i in Enumerable.Range(0, FullNode.ChildrenCount))
                                     {
                                         if (fullNode.Children[i] is { } child)
                                         {
@@ -108,7 +107,7 @@ namespace Libplanet.Store.Trie
                             continue;
 
                         case FullNode fullNode:
-                            foreach (int i in Enumerable.Range(0, FullNode.ChildrenCount - 1))
+                            foreach (int i in Enumerable.Range(0, FullNode.ChildrenCount))
                             {
                                 if (fullNode.Children[i] is { } c)
                                 {
