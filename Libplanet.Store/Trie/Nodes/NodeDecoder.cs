@@ -133,11 +133,16 @@ namespace Libplanet.Store.Trie.Nodes
         // The length is already checked.
         private static FullNode DecodeFull(List list)
         {
-            return new FullNode(list
-                .Select((child, i) => i < FullNode.ChildrenCount - 1
-                    ? Decode(child, FullChildNodeType)
-                    : Decode(child, FullValueNodeType))
-                .ToImmutableArray());
+            return list.Count == FullNode.ChildrenCount
+                ? new FullNode(
+                    list
+                        .Take(FullNode.ChildrenCount - 1)
+                        .Select(child => Decode(child, FullChildNodeType))
+                        .ToImmutableArray(),
+                    Decode(list[FullNode.ChildrenCount - 1], FullValueNodeType))
+                : throw new ArgumentException(
+                    $"Given {nameof(list)} must be of length {FullNode.ChildrenCount}: " +
+                    $"{list.Count}");
         }
 
         private static HashNode DecodeHash(Binary binary)

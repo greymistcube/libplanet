@@ -75,8 +75,11 @@ namespace Libplanet.Store
             var virtualChildren = fullNode.Children
                 .Select(c => c is null ? null : Commit(c, writeBatch, cache))
                 .ToImmutableArray();
+            var virtualChild = fullNode.Value is { } v
+                ? Commit(v, writeBatch, cache)
+                : null;
 
-            fullNode = new FullNode(virtualChildren);
+            fullNode = new FullNode(virtualChildren, virtualChild);
             IValue encoded = fullNode.ToBencodex();
 
             if (encoded.EncodingLength <= HashDigest<SHA256>.Size)

@@ -74,7 +74,7 @@ namespace Libplanet.Store.Trie
                                         }
                                     }
 
-                                    if (fullNode.Children[FullNode.ChildrenCount - 1] is { } value)
+                                    if (fullNode.Value is { } value)
                                     {
                                         queue.Enqueue((value, path));
                                     }
@@ -116,7 +116,7 @@ namespace Libplanet.Store.Trie
                                 }
                             }
 
-                            if (fullNode.Children[FullNode.ChildrenCount - 1] is { } v)
+                            if (fullNode.Value is { } v)
                             {
                                 queue.Enqueue((v, path));
                             }

@@ -56,7 +56,7 @@ namespace Libplanet.Store.Trie
             if (cursor.RemainingAnyNibbles)
             {
                 return FullNode.Empty
-                    .SetChild(FullNode.ChildrenCount - 1, valueNode)
+                    .SetValue(valueNode)
                     .SetChild(cursor.NextNibble, InsertToNullNode(cursor.Next(1), value));
             }
             else
@@ -89,23 +89,21 @@ namespace Libplanet.Store.Trie
                 byte newChildIndex = shortNode.Key[commonNibbles.Length];
                 Nibbles newShortNodeKey = shortNode.Key.Skip(commonNibbles.Length + 1);
 
-                // Handles modified short node.
+                // Handles the modified short node that is part of the original short node.
                 fullNode = newShortNodeKey.Length > 0
                     ? fullNode.SetChild(
                         newChildIndex,
                         new ShortNode(newShortNodeKey, shortNode.Value))
                     : fullNode.SetChild(newChildIndex, shortNode.Value!);
 
-                // Handles value node.
+                // Handles the argument value node.
                 // Assumes next cursor nibble (including non-remaining case)
                 // does not conflict with short node above.
                 fullNode = nextCursor.RemainingNibbleLength > 0
                     ? fullNode.SetChild(
                         nextCursor.NextNibble,
                         InsertToNullNode(nextCursor.Next(1), value))
-                    : fullNode.SetChild(
-                        FullNode.ChildrenCount - 1,
-                        value);
+                    : fullNode.SetValue(value);
 
                 // Full node is created at the branching point and may not be at the original root.
                 if (commonNibbles.Length == 0)
@@ -133,7 +131,7 @@ namespace Libplanet.Store.Trie
             else
             {
                 // Overwrite existing value
-                return fullNode.SetChild(FullNode.ChildrenCount - 1, value);
+                return fullNode.SetValue(value);
             }
         }
 
