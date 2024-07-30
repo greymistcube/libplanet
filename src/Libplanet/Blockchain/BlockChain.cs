@@ -822,10 +822,8 @@ namespace Libplanet.Blockchain
         /// <summary>
         /// Returns a new <see cref="BlockLocator"/> from the tip of current chain.
         /// </summary>
-        /// <param name="threshold">The amount of consequent blocks to include before sampling.
-        /// </param>
         /// <returns>A instance of block locator.</returns>
-        public BlockLocator GetBlockLocator(int threshold = 10)
+        public BlockLocator GetBlockLocator()
         {
             long startIndex;
             Guid id;
@@ -842,8 +840,7 @@ namespace Libplanet.Blockchain
 
             return BlockLocator.Create(
                 startIndex: startIndex,
-                indexToBlockHash: idx => Store.IndexBlockHash(Id, idx),
-                sampleAfter: threshold);
+                indexToBlockHash: idx => Store.IndexBlockHash(Id, idx));
         }
 
         /// <summary>
