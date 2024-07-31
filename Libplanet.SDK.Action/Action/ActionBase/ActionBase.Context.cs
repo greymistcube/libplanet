@@ -12,4 +12,3 @@ namespace Libplanet.SDK.Action.ActionBase
         protected IRandom Random => ActionContext.GetRandom();
     }
 }
-

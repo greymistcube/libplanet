@@ -11,7 +11,6 @@ namespace Libplanet.SDK.Action.ActionBase
         private static readonly Address MetadataAddress
             = new Address("999999cf1046e68e36E1aA2E0E07105eDDD1f08E");
 
-
         private IValue? _args = null;
         private string? _call = null;
 
@@ -22,4 +21,3 @@ namespace Libplanet.SDK.Action.ActionBase
         private IWorld? _world = null;
     }
 }
-

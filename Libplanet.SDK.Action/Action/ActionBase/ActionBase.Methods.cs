@@ -32,4 +32,3 @@ namespace Libplanet.SDK.Action.ActionBase
         }
     }
 }
-
