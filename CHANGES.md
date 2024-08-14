@@ -1,6 +1,50 @@
 Libplanet changelog
 ===================
 
+Version 5.3.0
+-------------
+
+To be released.
+
+### Deprecated APIs
+
+### Backward-incompatible API changes
+
+ -  (Libplanet.Store) Removed unused `HashNode.Serialize()` method.
+    [[#3922], [#3924]]
+
+### Backward-incompatible network protocol changes
+
+### Backward-incompatible storage format changes
+
+### Added APIs
+
+### Behavioral changes
+
+ -  (Libplanet.Store) Optimized `HashNode.ToBencodex()` method.
+    [[#3922], [#3924]]
+
+### Bug fixes
+
+### Dependencies
+
+### CLI tools
+
+[#3922]: https://github.com/planetarium/libplanet/issues/3922
+[#3924]: https://github.com/planetarium/libplanet/pull/3924
+
+
+Version 5.2.2
+-------------
+
+Released on August 8, 2024.
+
+ - Ported changes from [Libplanet 5.2.2] release.  [[#3915]]
+
+[#3915]: https://github.com/planetarium/libplanet/pull/3915
+[Libplanet 5.2.2]: https://www.nuget.org/packages/Libplanet/5.2.2
+
+
 Version 5.2.1
 -------------
 
