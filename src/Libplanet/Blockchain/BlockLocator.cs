@@ -22,7 +22,7 @@ namespace Libplanet.Blockchain
         /// </exception>
         public BlockLocator(IEnumerable<BlockHash> hashes)
         {
-            _impl = hashes.Count() == 1
+            _impl = hashes.Any()
                 ? hashes.ToList()
                 : throw new ArgumentException(
                     $"Given {nameof(hashes)} must have exactly one element: {hashes.Count()}",
